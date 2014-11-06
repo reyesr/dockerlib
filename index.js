@@ -117,7 +117,10 @@ exports.docker = {
         }
         if (typeof runOpts == "string") {
             cmdline += " " + runOpts;
+        } else if (Array.isArray(runOpts)) {
+            cmdline += " " + runOpts.join(" ");
         }
+
         cmdline += " --name " + containerName;
         cmdline += " " + joinVersion(containerImage, versionTag);
 
