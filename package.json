@@ -1,6 +1,6 @@
 {
   "name": "dockerlib",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Simple library wrapper around basic docker commands",
   "main": "index.js",
   "scripts": {
