@@ -1,4 +1,7 @@
-var shell = require('shelljs');
+var shell = require('shelljs'),
+    url = require("url"),
+    http = require("http"),
+    https = require("https");
 
 function runDocker(args) {
     var cmdline = "docker " + args;
@@ -79,6 +82,12 @@ exports.docker = {
         runDocker("pull " + quote(fullName));
     },
 
+    build: function(imageName, directory) {
+        directory = directory || ".";
+        exports.extraVerbose && console.log("building image" + quote(imageName) +" at " + directory);
+        runDocker("build -t " + imageName + " " + directory);
+    },
+
     removeContainer: function(containerName) {
         exports.extraVerbose && console.log("removing container " + quote(containerName));
         runDocker("rm -f " + quote(containerName));
@@ -118,4 +127,46 @@ exports.docker = {
     kill: function(containerName) {
         runDocker("rm -f " + containerName);
     }
+};
+
+exports.registry = {
+
+    loadRegistryTags: function(registryUrl, imageName, httpOptions, callback) {
+        console.log("options:", imageName);
+        var urlObj = url.parse(registryUrl);
+        if (!urlObj.port) {
+            urlObj.port = urlObj.protocol=="http"?80:443;
+        }
+        var optionsget = {
+            host : urlObj.hostname,
+            port : urlObj.port,
+            path : '/v1/repositories/' + imageName + '/tags',
+            method : 'GET' // do GET
+            //rejectUnauthorized: false
+        };
+
+        for (var k in httpOptions) {
+            if (httpOptions.hasOwnProperty(k)) {
+                optionsget[k] = httpOptions[k];
+            }
+        }
+
+        if (exports.extraVerbose) {
+            console.info('Options prepared:');
+            console.info(optionsget);
+        }
+
+        var reqGet = (urlObj.port===443?https:http).request(optionsget, function(res) {
+            console.log("statusCode: ", res.statusCode);
+            res.on('data', function(d) {
+                callback && callback(null, JSON.parse(d.toString()));
+            });
+        });
+        reqGet.end();
+        reqGet.on('error', function(e) {
+            console.error(" =============> ", e);
+            callback && callback(e);
+        });
+    }
+
 };
