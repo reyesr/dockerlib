@@ -161,8 +161,12 @@ exports.registry = {
 
         var reqGet = (urlObj.port===443?https:http).request(optionsget, function(res) {
             console.log("statusCode: ", res.statusCode);
+            var data = "";
             res.on('data', function(d) {
-                callback && callback(null, JSON.parse(d.toString()));
+                data += d.toString();
+            });
+            res.on("end", function() {
+                callback && callback(null, JSON.parse(data));
             });
         });
         reqGet.end();
