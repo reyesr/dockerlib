@@ -56,18 +56,18 @@ exports.docker = {
         runDocker(["login", "-u", quote(userName), (server!==undefined?(" " + quote(server)):"")].join(" "))
     },
 
-    tagRemoteName: function(imageName, remoteImageName, version) {
+    tagRemoteName: function(imageName, remoteImageName, version, force) {
         var local = joinVersion(imageName, version);
         var remote = joinVersion(remoteImageName, version);
         exports.extraVerbose && console.log("tagging " + quote(local) + " as " + quote(remote));
-        runDocker("tag " + quote(local) + " " + quote(remote));
+        runDocker("tag " + (force?"-f ":" ") + quote(local) + " " + quote(remote));
         return remote;
     },
 
     tag: function(imageName, tag) {
-        var fullName = joinVersion(imageName, tag);
+        var fullName = joinVersion(imageName, tag, force);
         exports.extraVerbose && console.log("tagging " + quote(imageName) + " as " + quote(fullName));
-        runDocker("tag " + quote(imageName) + " " + quote(fullName));
+        runDocker("tag " + (force?"-f ":" ") + quote(imageName) + " " + quote(fullName));
         return fullName;
     },
 
